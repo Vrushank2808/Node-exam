@@ -1,0 +1,28 @@
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-brand">
+            <a href="/" class="brand-link">BlogApp</a>
+        </div>
+        
+        <div class="nav-menu">
+            <a href="/" class="nav-link">All Articles</a>
+            
+            <% if (user) { %>
+                <a href="/my-articles" class="nav-link">My Articles</a>
+                <a href="/create" class="nav-link">Write Article</a>
+                <div class="user-menu">
+                    <span class="username">Welcome, <%= user.username %>!</span>
+                    <% if (user.role === 'admin') { %>
+                        <span class="admin-badge">Admin</span>
+                    <% } %>
+                    <form action="/auth/logout" method="POST" class="logout-form">
+                        <button type="submit" class="logout-btn">Logout</button>
+                    </form>
+                </div>
+            <% } else { %>
+                <a href="/auth/login" class="nav-link">Login</a>
+                <a href="/auth/register" class="nav-link">Register</a>
+            <% } %>
+        </div>
+    </div>
+</nav>

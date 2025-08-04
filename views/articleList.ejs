@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('partials/head') %>
+
+    <body>
+        <%- include('partials/navbar') %>
+
+            <div class="container">
+                <div class="page-header">
+                    <h1 class="page-title">
+                        <%= title %>
+                    </h1>
+                    <% if (user && user.role==='admin' ) { %>
+                        <a href="/create" class="btn btn-primary">Write New Article</a>
+                        <% } %>
+                </div>
+
+                <div class="articles-grid">
+                    <% if (articles && articles.length> 0) { %>
+                        <% articles.forEach(article=> { %>
+                            <div class="article-card interactive-card" tabindex="0" data-article='<%- JSON.stringify({
+                        _id: article._id,
+                        title: article.title,
+                        content: article.content,
+                        image: article.image,
+                        author: article.author ? article.author.username : "Anonymous",
+                        date: new Date(article.createdAt).toLocaleDateString(),
+                        tags: article.tags,
+                        comments: article.comments.length
+                    }) %>'>
+                                <% if (article.image) { %>
+                                    <div class="article-thumbnail">
+                                        <a href="/article/<%= article._id %>">
+                                            <img src="<%= article.image %>" alt="<%= article.title %>"
+                                                class="thumbnail-image">
+                                        </a>
+                                    </div>
+                                    <% } %>
+                                        <div class="article-card-content">
+                                            <h2 class="article-title">
+                                                <a href="/article/<%= article._id %>">
+                                                    <%= article.title %>
+                                                </a>
+                                            </h2>
+                                            <div class="article-meta">
+                                                <span class="author">By <%= article.author ? article.author.username
+                                                        : "Anonymous" %></span>
+                                                <span class="date">
+                                                    <%= new Date(article.createdAt).toLocaleDateString() %>
+                                                </span>
+                                            </div>
+                                            <div class="article-content">
+                                                <p>
+                                                    <%= article.content.substring(0, 200) %>...
+                                                </p>
+                                            </div>
+                                            <div class="article-footer">
+                                                <% if (article.tags && article.tags.length> 0) { %>
+                                                    <div class="tags">
+                                                        <% article.tags.forEach(tag=> { %>
+                                                            <span class="tag">#<%= tag %></span>
+                                                            <% }) %>
+                                                    </div>
+                                                    <% } %>
+                                                        <div class="article-stats">
+                                                            <span class="comments-count">
+                                                                <%= article.comments.length %> comments
+                                                            </span>
+                                                        </div>
+                                            </div>
+                                        </div>
+                            </div>
+                            <% }) %>
+
+                                <!-- Modal Structure -->
+                                <div id="articleModal" class="modal">
+                                    <div class="modal-content">
+                                        <button class="close-modal" id="closeModal"
+                                            aria-label="Close modal">&times;</button>
+
+                                        <!-- Article Header -->
+                                        <div class="modal-header">
+                                            <div class="article-categories" id="modalCategories"></div>
+                                            <h1 id="modalTitle" class="article-title"></h1>
+                                            <div class="article-meta">
+                                                <div class="author-info" id="modalAuthorInfo">
+                                                    <span class="author-avatar" id="modalAuthorAvatar"></span>
+                                                    <div class="author-details">
+                                                        <span class="author-name" id="modalAuthor"></span>
+                                                        <span class="publish-date" id="modalDate"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="article-stats">
+                                                    <span class="reading-time" id="readingTime"></span>
+                                                    <span class="comments-count" id="modalCommentsCount"></span>
+                                                    <span class="views-count" id="modalViews"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Featured Image -->
+                                        <div class="featured-image" id="modalImageWrapper"></div>
+
+                                        <!-- Article Content -->
+                                        <div class="article-content-wrapper">
+                                            <article class="article-content" id="modalContent">
+                                                <!-- Content will be inserted here by JavaScript -->
+                                            </article>
+
+                                            <!-- Tags -->
+                                            <div class="article-footer">
+                                                <div class="tags-container">
+                                                    <h3>Tags:</h3>
+                                                    <div class="tags-list" id="modalTags"></div>
+                                                </div>
+
+                                                <!-- Social Sharing -->
+                                                <div class="social-sharing">
+                                                    <span>Share:</span>
+                                                    <div class="social-icons">
+                                                        <a href="#" class="social-icon" data-platform="twitter"
+                                                            aria-label="Share on Twitter">
+                                                            <i class="fab fa-twitter"></i>
+                                                        </a>
+                                                        <a href="#" class="social-icon" data-platform="facebook"
+                                                            aria-label="Share on Facebook">
+                                                            <i class="fab fa-facebook-f"></i>
+                                                        </a>
+                                                        <a href="#" class="social-icon" data-platform="linkedin"
+                                                            aria-label="Share on LinkedIn">
+                                                            <i class="fab fa-linkedin-in"></i>
+                                                        </a>
+                                                        <a href="#" class="social-icon" data-platform="whatsapp"
+                                                            aria-label="Share on WhatsApp">
+                                                            <i class="fab fa-whatsapp"></i>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Author Bio -->
+                                            <div class="author-bio" id="modalAuthorBio">
+                                                <div class="author-avatar" id="modalAuthorAvatarLarge"></div>
+                                                <div class="author-details">
+                                                    <h3>About the Author</h3>
+                                                    <p class="author-bio-text" id="modalAuthorBioText"></p>
+                                                    <div class="author-social" id="modalAuthorSocial"></div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Comments Section -->
+                                            <div class="comments-section">
+                                                <h3>Comments <span id="commentsCount">(0)</span></h3>
+                                                <div class="comments-list" id="modalComments">
+                                                    <!-- Comments will be loaded here -->
+                                                    <div class="no-comments">No comments yet. Be the first to comment!
+                                                    </div>
+                                                </div>
+
+                                                <!-- Comment Form -->
+                                                <form class="comment-form" id="commentForm">
+                                                    <h4>Leave a Comment</h4>
+                                                    <div class="form-group">
+                                                        <textarea id="commentText"
+                                                            placeholder="Write your comment here..."
+                                                            required></textarea>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-primary">Post Comment</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <script>
+                                    // Modal logic
+                                    document.addEventListener('DOMContentLoaded', function () {
+                                        const cards = document.querySelectorAll('.interactive-card');
+                                        const modal = document.getElementById('articleModal');
+                                        const closeModal = document.getElementById('closeModal');
+                                        const modalTitle = document.getElementById('modalTitle');
+                                        const modalImageWrapper = document.getElementById('modalImageWrapper');
+                                        const modalAuthor = document.getElementById('modalAuthor');
+                                        const modalDate = document.getElementById('modalDate');
+                                        const modalTags = document.getElementById('modalTags');
+                                        const modalContent = document.getElementById('modalContent');
+                                        let isModalOpen = false;
+
+                                        // Function to open modal
+                                        function openModal(article) {
+                                            try {
+                                                // Basic validation
+                                                if (!article) {
+                                                    console.error('No article data provided');
+                                                    return;
+                                                }
+
+                                                // Set title
+                                                if (article.title) {
+                                                    modalTitle.textContent = article.title;
+                                                }
+
+                                                // Set image if exists
+                                                if (article.image) {
+                                                    modalImageWrapper.innerHTML = `<img src="${article.image}" alt="${article.title || 'Article image'}" class="modal-img">`;
+                                                    modalImageWrapper.style.display = 'block';
+                                                } else {
+                                                    modalImageWrapper.innerHTML = '';
+                                                    modalImageWrapper.style.display = 'none';
+                                                }
+
+                                                // Set author and date
+                                                if (article.author) {
+                                                    modalAuthor.textContent = `By ${article.author.username}`;
+                                                } else {
+                                                    modalAuthor.textContent = `By Anonymous`;
+                                                }
+
+                                                if (article.date) {
+                                                    modalDate.textContent = article.date;
+                                                }
+
+                                                // Set tags if they exist
+                                                if (article.tags && Array.isArray(article.tags) && article.tags.length > 0) {
+                                                    modalTags.innerHTML = article.tags.map(tag =>
+                                                        `<span class="tag">#${tag}</span>`
+                                                    ).join(' ');
+                                                    modalTags.style.display = 'block';
+                                                } else {
+                                                    modalTags.innerHTML = '';
+                                                    modalTags.style.display = 'none';
+                                                }
+
+                                                // Set content
+                                                if (article.content) {
+                                                    modalContent.innerHTML = `<p>${article.content.replace(/\n/g, '<br>')}</p>`;
+                                                } else {
+                                                    modalContent.innerHTML = '<p>No content available.</p>';
+                                                }
+
+                                                // Show modal with animation
+                                                document.body.style.overflow = 'hidden';
+                                                document.documentElement.style.overflow = 'hidden';
+                                                modal.style.display = 'flex';
+                                                setTimeout(() => {
+                                                    modal.classList.add('show');
+                                                }, 10);
+                                                isModalOpen = true;
+
+                                            } catch (error) {
+                                                console.error('Error opening modal:', error);
+                                                // Fallback to redirect if modal fails
+                                                if (article._id) {
+                                                    window.location.href = `/article/${article._id}`;
+                                                }
+                                            }
+                                        }
+
+                                        // Function to close modal
+                                        function closeModalFunc() {
+                                            document.body.style.overflow = 'auto';
+                                            document.documentElement.style.overflow = 'auto';
+                                            modal.style.display = 'none';
+                                            modal.classList.remove('show');
+                                            isModalOpen = false;
+                                        }
+
+                                        // Add click event to cards
+                                        cards.forEach(card => {
+                                            // Only add click handler to the card itself, not its children
+                                            card.style.cursor = 'pointer';
+
+                                            card.addEventListener('click', function (e) {
+                                                // Don't open modal if clicking on interactive elements
+                                                if (e.target.tagName === 'A' ||
+                                                    e.target.closest('a') ||
+                                                    e.target.tagName === 'BUTTON' ||
+                                                    e.target.closest('button')) {
+                                                    return;
+                                                }
+
+                                                // Make sure we have the article data
+                                                if (!this.dataset.article) {
+                                                    console.error('No article data found');
+                                                    return;
+                                                }
+
+                                                try {
+                                                    const article = JSON.parse(this.dataset.article);
+                                                    openModal(article);
+                                                } catch (error) {
+                                                    console.error('Error parsing article data:', error);
+                                                }
+                                            });
+                                        });
+
+                                        // Close modal when clicking the close button
+                                        if (closeModal) {
+                                            closeModal.addEventListener('click', function (e) {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                closeModalFunc();
+                                                return false;
+                                            });
+                                        }
+
+                                        // Close modal when clicking outside the modal content
+                                        if (modal) {
+                                            modal.addEventListener('click', function (e) {
+                                                if (e.target === modal) {
+                                                    closeModalFunc();
+                                                }
+                                            });
+                                        }
+
+                                        // Close modal with Escape key
+                                        function handleEscapeKey(e) {
+                                            if (e.key === 'Escape' && isModalOpen) {
+                                                closeModalFunc();
+                                            }
+                                        }
+
+                                        // Add event listener for Escape key
+                                        document.addEventListener('keydown', handleEscapeKey);
+
+                                        // Cleanup function to remove event listeners
+                                        function cleanup() {
+                                            document.removeEventListener('keydown', handleEscapeKey);
+                                            if (closeModal) {
+                                                closeModal.removeEventListener('click', closeModalFunc);
+                                            }
+                                            if (modal) {
+                                                modal.removeEventListener('click', closeModalFunc);
+                                            }
+                                        }
+
+                                        // Cleanup when the page is unloaded
+                                        window.addEventListener('beforeunload', cleanup);
+                                    });
+                                </script>
+                                <% } else { %>
+                                    <div class="empty-state">
+                                        <h3>No articles found</h3>
+                                        <p>Be the first to write an article!</p>
+                                        <% if (user) { %>
+                                            <a href="/create" class="btn btn-primary">Write Article</a>
+                                            <% } else { %>
+                                                <a href="/auth/register" class="btn btn-primary">Join to Write</a>
+                                                <% } %>
+                                    </div>
+                                    <% } %>
+                </div>
+            </div>
+    </body>
+
+</html>
