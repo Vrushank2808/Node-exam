@@ -99,7 +99,7 @@
                                         </div>
 
                                         <!-- Featured Image -->
-                                        <div class="featured-image" id="modalImageWrapper"></div>
+                                        <div class="featured-image" id="modalImageWrapper" style="display: none;"></div>
 
                                         <!-- Article Content -->
                                         <div class="article-content-wrapper">
@@ -210,8 +210,10 @@
                                                 }
 
                                                 // Set author and date
-                                                if (article.author) {
+                                                if (article.author && article.author.username) {
                                                     modalAuthor.textContent = `By ${article.author.username}`;
+                                                } else if (article.author && typeof article.author === 'string') {
+                                                    modalAuthor.textContent = `By ${article.author}`;
                                                 } else {
                                                     modalAuthor.textContent = `By Anonymous`;
                                                 }
@@ -275,7 +277,9 @@
                                                 if (e.target.tagName === 'A' ||
                                                     e.target.closest('a') ||
                                                     e.target.tagName === 'BUTTON' ||
-                                                    e.target.closest('button')) {
+                                                    e.target.closest('button') ||
+                                                    e.target.tagName === 'IMG' ||
+                                                    e.target.closest('img')) {
                                                     return;
                                                 }
 
@@ -313,19 +317,15 @@
                                             });
                                         }
 
-                                        // Close modal with Escape key
-                                        function handleEscapeKey(e) {
+                                        // Close modal when pressing Escape key
+                                        document.addEventListener('keydown', function(e) {
                                             if (e.key === 'Escape' && isModalOpen) {
                                                 closeModalFunc();
                                             }
-                                        }
-
-                                        // Add event listener for Escape key
-                                        document.addEventListener('keydown', handleEscapeKey);
+                                        });
 
                                         // Cleanup function to remove event listeners
                                         function cleanup() {
-                                            document.removeEventListener('keydown', handleEscapeKey);
                                             if (closeModal) {
                                                 closeModal.removeEventListener('click', closeModalFunc);
                                             }
